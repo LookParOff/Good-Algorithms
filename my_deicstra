@@ -1,0 +1,87 @@
+# функция, преобразующая список ребер в список смежных вершин
+def edges2adj(N, edges):
+    lst_of_nei = [[] for _ in range(N)]
+
+    for edge in edges:
+        u, v, cost = edge
+        lst_of_nei[u].append((v, cost))
+        lst_of_nei[v].append((u, cost))
+
+    return lst_of_nei
+
+
+# инициализация алгоритма Дейкстры в соответствии с алгоритмом
+# G - граф в виде списков смежных вершин, построенный с помощью edges2adj
+# s - стартовая вершина
+def Dijkstra_init(G, s):
+    # создаем и заполняем массив жадных оценок Дейкстры d и массив предков pi
+    d = [float("inf") for _ in range(len(G))]
+    # for nei in G[s]:
+    #     v, cost = nei
+    #     d[v] = cost
+    d[s] = 0
+    pi = [None for _ in range(len(G))]
+    pi[s] = None
+    return (d, pi)
+
+
+# функция проходит по всем еще не обработанным вершинам и выбирает из них
+# минимальную с точки зрения жадной оценки Дейкстры (хранящейся в массиве d)
+# used - массив флагов: True - вершина уже обработана, False - еще нет
+def get_min(d, used):
+    v = None
+    min = float("inf")
+    for i, el in enumerate(used):
+        if not el and d[i] < min:
+            v = i
+            min = d[i]
+
+    # если v удалось найти, не забываем изменить флаг для этой вершины в used!
+    if v is not None:
+        used[v] = True
+    return v
+
+
+# G - граф в виде списков смежных вершин, построенный с помощью edges2adj
+# s - стартовая вершина
+def Dijkstra(G, s):
+    # инициализируем массивы d и pi
+    d, pi = Dijkstra_init(G, s)
+
+    # создаем массив флагов used
+    used = [False for _ in range(len(G))]
+    # запускаем цикл, выполняющийся N раз, где N - количество вершин в графе
+    for _ in range(len(G)):
+        # находим вершину с минимальной жадной оценкой Дейкстры (с помощью get_min)
+        u = get_min(d, used)
+        if u is None:
+            continue
+        # пробегаемся по всем ее соседям v и делаем релаксацию ребер (u,v)
+        for nei_of_min in G[u]:
+            nei, cost = nei_of_min
+            if d[u] + cost < d[nei]:
+                d[nei] = d[u] + cost
+                pi[nei] = u
+    # возвращаем ответ
+    return (d, pi)
+
+
+# считываем количество вершин и стартовую вершину
+N, s = list(map(int, input().split(" ")))
+
+edges = []
+
+#считываем ребра
+while True:
+    try:
+        aux = list(map(int, input().split(" ")))
+        edges.append(aux)
+    except:
+        break
+
+
+# делаем работу и печатаем результат
+G = edges2adj(N, edges)
+d, pi = Dijkstra(G, s)
+print(d)
+print(pi)
